@@ -2,7 +2,7 @@
 Bash script to detect devices in your local network: gets IP address, MAC address and Device name
 
 # usage
-./net-scan [-h] [-i n] [-l] [-a] [-m]
+./net-scan.sh [-h] [-i n] [-l] [-a] [-m]
 
 where:
 	-h	show this help text
