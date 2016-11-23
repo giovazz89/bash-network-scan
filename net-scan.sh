@@ -1,20 +1,23 @@
-usage="$(basename "$0") [-h] [-i n] [-l] [-a] [-m] -- program to retrieve network devices and show IP address paired with the device name
+usage="$(basename "$0") [OPTIONS] -- program to retrieve network devices and show IP address paired with the device name
 
 where:
 	-h	show this help text
 	-i	set the IP interface to check (default: 1) - check available IPs list with [-l] option
 	-l	list the available IP addresses
 	-a	show all network IPs, even if no computer name is found
-	-m	show MAC address"
+	-m	show MAC address
+	-b	show devices brand when no other information is available (if nmap installed and if can be found)"
 
 myip=1
 shownoname=false
 showmac=false
+showbrand=false
 RED='\033[0;31m'
 GREEN='\033[0;32m'
+ORANGE='\033[0;33m'
 NC='\033[0m'
 
-while getopts ':halmi:' option; do
+while getopts ':halmbi:' option; do
 	case "$option" in
 		h) echo "$usage"
 			exit 0
@@ -25,6 +28,8 @@ while getopts ':halmi:' option; do
 		   	exit 0
 		   	;;
 		m) showmac=true
+			;;
+		b) showbrand=true
 			;;
    		i) myip=$OPTARG
 			if [ -z $(sudo nm-tool | grep -i 'address' | grep -Po '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | sed -n "$myip"p) ]; then
@@ -41,6 +46,12 @@ while getopts ':halmi:' option; do
 	esac
 done
 shift $((OPTIND - 1))
+
+# get if nmap is installed
+nmapInstalled=$(whereis nmap)
+if [ -z "$nmapInstalled" ]; then
+	showbrand=false
+fi
 
 maxwait=0.1;
 # get starter IP address
@@ -83,6 +94,15 @@ for((i=1;i<$iprange;i++)); do
 		fi
 		if [ "$ci1.$ci2.$ci3.$ci4" == "$i1.$i2.$i3.$i4" ]; then
 			result="$result ( ${RED}THIS DEVICE${NC} )"
+		fi
+		# if nothing found and nmap installed get device brand
+		if [ "$result" == "???" ] && [ $showbrand == true ]; then
+			result=$(sudo nmap -sP "$ci1.$ci2.$ci3.$ci4" | grep 'MAC Address' | grep -Po '\(.+?\)')
+			if [ "$result" == "(Unknown)" ]; then
+				result="???"
+			else
+				result="??? ${ORANGE}$result${NC}"
+			fi
 		fi
 		echo -e "$toprint\t=>\t$result"
 	fi
