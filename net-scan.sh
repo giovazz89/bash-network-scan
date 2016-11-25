@@ -70,9 +70,9 @@ iprange=$(( 2**(32-$iprange) -1 ))
 for((i=1;i<$iprange;i++)); do
 	# calulate IP
 	ci4=$(($si4 + $i))
-	ci3=$(($si3 + ($ci4 / 255) )); ci4=$(($ci4 % 255))
-	ci2=$(($si2 + ($ci3 / 255) )); ci3=$(($ci3 % 255))
-	ci1=$(($si1 + ($ci2 / 255) )); ci2=$(($ci2 % 255))
+	ci3=$(($si3 + ($ci4 / 256) )); ci4=$(($ci4 % 256))
+	ci2=$(($si2 + ($ci3 / 256) )); ci3=$(($ci3 % 256))
+	ci1=$(($si1 + ($ci2 / 256) )); ci2=$(($ci2 % 256))
 	# get computer name
 	result=$(timeout $maxwait nmblookup -A "$ci1.$ci2.$ci3.$ci4" | sed -n 2p | grep -Po '\t.+?\s' | xargs)
 	hwaddress=$(arp "$ci1.$ci2.$ci3.$ci4" | grep -Po '([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})')
